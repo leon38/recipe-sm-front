@@ -36,6 +36,11 @@
   transition: 0.65s ease-in-out;
 }
 
+.login-4-card .card-bg::after {
+  background-color: rgba(0,0,0,0.8);
+}
+
+
 .login-4-card .card-bg.login {
   translate: 100% 0;
 }

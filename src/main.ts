@@ -6,7 +6,7 @@ import router from './router/Router'
 
 import { createPinia } from 'pinia'
 
-import './assets/main.css'
+import './assets/style.css'
 
 createApp(App)
   .use(createPinia())

@@ -22,7 +22,7 @@ export function useRecipes() {
   const isError = ref(false)
   const error = ref<Error | null>(null)
 
-  const recipes = computed(() => data.value?.items ?? [])
+  const recipes = computed<Recipe[]>(() => data.value?.items ?? [])
   const pagination = computed(() => data.value?.pagination ?? null)
   const totalPages = computed(() => {
     const total = data.value?.pagination.total ?? 0
@@ -55,6 +55,7 @@ export function useRecipes() {
   }
 
   const goToPage = async (page: number) => {
+    console.log(page)
     if (page < 1 || page > totalPages.value) return
     await fetchRecipes(page)
   }

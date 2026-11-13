@@ -10,7 +10,7 @@
     "
   >
     <div
-      v-for="n in 8"
+      v-for="n in 6"
       :key="n"
       class="
         bg-white
@@ -28,7 +28,7 @@
 
         <div class="flex gap-3">
           <div
-            v-for="i in 3"
+            v-for="i in 2"
             :key="i"
             class="
               w-14

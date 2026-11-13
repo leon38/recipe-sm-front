@@ -3,13 +3,14 @@ import { ref } from 'vue'
 import { recipeApi } from '../api/recipe.api'
 import { useImportRecipe } from '../composables/useImportRecipe'
 import { useCategories } from '../composables/useCategories'
-import AuthPanel from '../components/auth/AuthPanel.vue'
 import { onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import type { Recipe } from '../domain/recipe/Recipe'
 import type { RecipeIngredient } from '../domain/recipe/RecipeIngredient'
 import type { RecipeStep } from '../domain/recipe/RecipeStep'
 import type { Tag } from '../domain/recipe/Tag'
+import { Download } from '@lucide/vue'
+import AppButton from '../components/ui/AppButton.vue'
 
 const url = ref('')
 const previewRecipe = ref<Recipe>(createEmptyRecipe())
@@ -168,65 +169,70 @@ async function saveRecipe() {
 </script>
 
 <template>
-  <div class="form-card">
-    <form v-if="authToken" @submit.prevent="submit" class="form-row form-group">
-      <div>
-        <label>URL Instagram</label>
-        <input v-model="url" type="url" placeholder="https://www.instagram.com/..." />
-      </div>
+  <div class="mx-auto max-w-7xl px-5 my-8 sm:px-8 lg:px-12">
+    <div class="form-card group overflow-hidden rounded-2xl p-4 border border-line bg-surface shadow-card transition duration-300 hover:-translate-y-1 hover:shadow-lift">
+      <form v-if="authToken" @submit.prevent="submit">
+        <div class="flex gap-2">
+          <label class="flex min-w-0 flex-1 items-center gap-3 rounded-full border border-line bg-surface px-4 py-3.5 transition focus-within:border-olive focus-within:ring-2 focus-within:ring-olive/10 sm:px-5">
+            <Download :size="18" class="shrink-0 text-olive" aria-hidden="true" />
+            <span class="sr-only">URL Instagram</span>
+            <input v-model="url" type="search" placeholder="https://www.instagram.com/..." class="min-w-0 flex-1 bg-transparent text-sm text-ink outline-none placeholder:text-muted/80" />
+          </label>
+          <AppButton variant="primary" type="submit" :disabled="mutation.isPending.value">
+            <span v-if="mutation.isPending.value">Import en cours...</span>
+            <span v-else>Importer et prévisualiser</span>
+          </AppButton>
+        </div>
+      </form>
+    </div>
 
-      <button type="submit" class="submit-btn" :disabled="mutation.isPending.value">
-        <span v-if="mutation.isPending.value">Import en cours...</span>
-        <span v-else>Importer et prévisualiser</span>
-      </button>
-    </form>
-  </div>
+    <div v-if="mutation.isError.value" class="rounded-xl border border-red-200 bg-red-50 p-4 text-red-700">
+      Impossible d’importer cette recette. Vérifiez l’URL.
+    </div>
 
-  <div v-if="mutation.isError.value" class="rounded-xl border border-red-200 bg-red-50 p-4 text-red-700">
-    Impossible d’importer cette recette. Vérifiez l’URL.
-  </div>
-
-  <div v-if="previewRecipe.title || previewRecipe.ingredients.length || previewRecipe.steps.length">
-    <div class="form-card" v-if="previewRecipe.title || previewRecipe.ingredients.length || previewRecipe.steps.length">
-      <div class="form-header">
-        <h2>Transmettre une Recette</h2>
+    <div v-if="previewRecipe.title || previewRecipe.ingredients.length || previewRecipe.steps.length">
+      <div class="rounded-2xl p-4 border border-line bg-surface shadow-card" v-if="previewRecipe.title || previewRecipe.ingredients.length || previewRecipe.steps.length">
+        <h2 class="text-3xl font-display">Transmettre une Recette</h2>
         <p>Remplissez la fiche pour immortaliser votre secret de cuisine dans le carnet.</p>
-      </div>
-      <div class="form-group">
-        <label for="title">Titre</label>
-        <input name="title" id="title" type="text" v-model="previewRecipe.title" placeholder="ex: Tarte Fine aux Pommes" required />
-      </div>
-
-      <div class="form-group">
-        <label for="description">Description</label>
-        <textarea name="description" id="description" v-model="previewRecipe.description" rows="4" />
-      </div>
-
-      <div class="form-group">
-        <label>Photo du Plat</label>
-        <div
-          class="file-upload"
-          :class="isDraggingImage ? 'border-green-500 bg-green-50' : 'border-stone-300 hover:border-green-400'"
-          @click="openImagePicker"
-          @dragover.prevent="isDraggingImage = true"
-          @dragleave.prevent="isDraggingImage = false"
-          @drop.prevent="handleImageDrop"
-        >
-          <input ref="imageInput" type="file" accept="image/*" class="sr-only" @change="handleImageSelection" />
-
-          <div class="flex flex-col items-center justify-center gap-2 text-sm">
-            <span class="text-2xl">📷</span>
-            <span class="font-medium text-stone-700">Glissez une image ici ou cliquez pour sélectionner</span>
-            <span class="text-stone-500">PNG, JPG ou WebP</span>
-            <span v-if="uploadedImageName" class="text-green-700">{{ uploadedImageName }}</span>
+        <div class="form-group form-row">
+          <div>
+            <label for="title">Titre</label>
+            <input name="title" id="title" type="text" v-model="previewRecipe.title" placeholder="ex: Tarte Fine aux Pommes" required />
           </div>
         </div>
 
-        <div v-if="previewRecipe.imageUrl" class="mt-3 flex items-center justify-between rounded-xl border border-stone-200 bg-stone-50 px-3 py-2">
-          <span class="text-sm text-stone-600">Une image est prête à être enregistrée.</span>
-          <button type="button" class="text-sm text-red-600" @click.stop="previewRecipe.imageUrl = ''">Retirer</button>
+        <div class="form-group form-row">
+          <div>
+            <label for="description">Description</label>
+            <textarea name="description" id="description" v-model="previewRecipe.description" rows="4" />
+          </div>
         </div>
-      </div>
+
+        <div class="form-group">
+          <label>Photo du Plat</label>
+          <div
+            class="file-upload"
+            :class="isDraggingImage ? 'border-green-500 bg-green-50' : 'border-stone-300 hover:border-green-400'"
+            @click="openImagePicker"
+            @dragover.prevent="isDraggingImage = true"
+            @dragleave.prevent="isDraggingImage = false"
+            @drop.prevent="handleImageDrop"
+          >
+            <input ref="imageInput" type="file" accept="image/*" class="sr-only" @change="handleImageSelection" />
+
+            <div class="flex flex-col items-center justify-center gap-2 text-sm">
+              <span class="text-2xl">📷</span>
+              <span class="font-medium text-stone-700">Glissez une image ici ou cliquez pour sélectionner</span>
+              <span class="text-stone-500">PNG, JPG ou WebP</span>
+              <span v-if="uploadedImageName" class="text-green-700">{{ uploadedImageName }}</span>
+            </div>
+          </div>
+
+          <div v-if="previewRecipe.imageUrl" class="mt-3 flex items-center justify-between rounded-xl border border-stone-200 bg-stone-50 px-3 py-2">
+            <span class="text-sm text-stone-600">Une image est prête à être enregistrée.</span>
+            <button type="button" class="text-sm text-red-600" @click.stop="previewRecipe.imageUrl = ''">Retirer</button>
+          </div>
+        </div>
 
       <div class="form-row form-group">
         <div>
@@ -272,11 +278,11 @@ async function saveRecipe() {
 
       <div class="form-header">
         <h2>Ingrédients</h2>
-        <button type="button" class="rounded-xl border border-stone-300 px-3 py-2 text-sm" @click="addIngredient">Ajouter</button>
+        <AppButton variant="outline" @click="addIngredient">Ajouter</AppButton>
       </div>
 
       <div class="form-group">
-        <div v-for="(ingredient, index) in previewRecipe.ingredients" :key="index" class="grid gap-3 md:grid-cols-[2fr_1fr_1fr_auto]">
+        <div v-for="(ingredient, index) in previewRecipe.ingredients" :key="index" class="grid gap-3 md:grid-cols-[2fr_1fr_1fr_auto] form-group form-row">
           <input v-model="ingredient.name" type="text" placeholder="Nom" />
           <input v-model.number="ingredient.quantity" type="number" placeholder="Quantité" />
           <input v-model="ingredient.unit" type="text" placeholder="Unité" />
@@ -286,7 +292,7 @@ async function saveRecipe() {
 
       <div class="form-header">
         <h2>Étapes</h2>
-        <button type="button" class="rounded-xl border border-stone-300 px-3 py-2 text-sm" @click="addStep">Ajouter</button>
+        <AppButton variant="outline" @click="addStep">Ajouter</AppButton>
       </div>
 
       <div class="space-y-3">
@@ -305,17 +311,17 @@ async function saveRecipe() {
       <div class="space-y-3">
         <div class="flex gap-2">
           <input v-model="newTag" placeholder="Ajouter un tag" class="flex-1 rounded-xl border border-stone-300 px-4 py-3" @keyup.enter="addTag" />
-          <button type="button" class="rounded-xl border border-stone-300 px-4 py-3 font-medium" @click="addTag">Ajouter</button>
+          <AppButton variant="outline" @click="addTag">Ajouter</AppButton>
         </div>
 
-        <div class="flex flex-wrap gap-2">
-          <span v-for="(tag, index) in previewRecipe.tags" :key="index" class="inline-flex items-center gap-2 tag active">
+        <div class="flex flex-wrap gap-2 mt-2 mb-4">
+          <span v-for="(tag, index) in previewRecipe.tags" :key="index" class="inline-flex items-center justify-center gap-2 rounded-full font-semibold transition duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-olive focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 px-4 py-2 text-xs bg-terracotta text-white hover:bg-[#a9432b]">
             {{ tag.name }}
             <button type="button" class="text-white hover:text-white" @click="removeTag(index)">✕</button>
           </span>
         </div>
       </div>
-    
+      
       <div class="form-header">
         <h2>Catégories</h2>
       </div>
@@ -340,11 +346,13 @@ async function saveRecipe() {
             <span class="category-label">{{ category.name }}</span>
           </label>
         </div>
+        <div class="flex items-center gap-3 mt-3">
+          <AppButton type="button" variant="primary" size="lg" @click="saveRecipe">Enregistrer la recette</AppButton>
+          <span v-if="saveMessage" class="text-sm text-stone-600">{{ saveMessage }}</span>
+        </div>
       </div>
 
-      <div class="flex items-center gap-3">
-        <button type="button" class="submit-btn" @click="saveRecipe">Enregistrer la recette</button>
-        <span v-if="saveMessage" class="text-sm text-stone-600">{{ saveMessage }}</span>
-      </div>
+      
     </div>
+  </div>
 </template>

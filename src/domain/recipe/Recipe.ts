@@ -20,3 +20,14 @@ export interface Recipe {
   tags: Tag[]
   categories: Category[]
 }
+
+export const SAISONS = {
+  PRINTEMPS: 'Printemps',
+  ETE: 'Été',
+  AUTOMNE: 'Automne',
+  HIVER: 'Hiver',
+  TOUTES: 'toutes saisons',
+} as const
+
+// Ce type vaudra exactement : 'Printemps' | 'Été' | 'Automne' | 'Hiver'
+export type Saison = typeof SAISONS[keyof typeof SAISONS]
